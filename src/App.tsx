@@ -1,26 +1,42 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, {useState} from 'react';
+import firebase from './config/firebase';
 
-function App() {
+export const App: React.FC = () => {
+  const [image, setImage] = useState<any | null>({preview: '', raw: ''});
+  const [photo, setPhoto] = useState<any | null>(null);
+
+  const handleChange: React.ChangeEventHandler<HTMLInputElement> = e => {
+    const image = e.target.files !== null ? e.target.files[0] : null;
+    setPhoto(image);
+    setImage({
+      preview: URL.createObjectURL(
+        e.target.files !== null ? e.target.files[0] : null,
+      ),
+      raw: e.target.files !== null ? e.target.files[0] : null,
+    });
+  };
+
+  const handleUpload = () => {
+    const storageRef = firebase.storage().ref(photo.name);
+    storageRef
+      .put(photo)
+      .then(snapshot => {
+        console.log('upload file');
+      })
+      .catch((err: Error) => {
+        console.log(err);
+      });
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <input type="file" id="upload-button" onChange={handleChange} />
+      {image.preview ? (
+        <img src={image.preview} alt="ユーザーアバター" />
+      ) : (
+        <img src={photo} alt="ユーザーアバター" />
+      )}
+      <button onClick={handleUpload}>画像を投稿</button>
     </div>
   );
-}
-
-export default App;
+};
